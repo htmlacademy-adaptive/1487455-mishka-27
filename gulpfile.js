@@ -1,29 +1,55 @@
+/*
+!!! Created for node server v16.18.1
+This gulp build has 2 modes: developing and production
+
+Differences of developing mode:
+-- No compression images
+-- No creation webP and avif files
+-- Creating html and css files without including webP and avif formats.
+*/
+
 import gulp from 'gulp';
-import plumber from 'gulp-plumber';
-import sass from 'gulp-dart-sass';
-import postcss from 'gulp-postcss';
-import autoprefixer from 'autoprefixer';
+import data from './source/data.json' assert {type: 'json'};
 import browser from 'browser-sync';
+import del from 'del';
+import {compileTwig, validateMarkup, lintBem} from './gulp/processMarkup.mjs';
+import {processImages, createWebp, createAvif, optimizeSvg, createSvgStack} from './gulp/processImages.mjs';
+import processStyles from './gulp/processStyles.mjs';
+import processScripts from './gulp/processScripts.mjs';
+import copyAssets from './gulp/copyAssets.mjs';
 
-// Styles
+export {compileTwig, validateMarkup, lintBem};
 
-export const styles = () => {
-  return gulp.src('source/sass/style.scss', { sourcemaps: true })
-    .pipe(plumber())
-    .pipe(sass().on('error', sass.logError))
-    .pipe(postcss([
-      autoprefixer()
-    ]))
-    .pipe(gulp.dest('source/css', { sourcemaps: '.' }))
-    .pipe(browser.stream());
+data.isDevelopment = false;
+
+// Delete build folder
+
+const removeBuild = () => {
+  return del('build');
 }
 
-// Server
+// CompileProject
+
+const compileProject = (done) => {
+  gulp.parallel(
+    copyAssets,
+    compileTwig,
+    processStyles,
+    processImages,
+    processScripts,
+    createWebp,
+    createAvif,
+    optimizeSvg,
+    createSvgStack
+  )(done);
+}
+
+// Run localhost server
 
 const server = (done) => {
   browser.init({
     server: {
-      baseDir: 'source'
+      baseDir: 'build'
     },
     cors: true,
     notify: false,
@@ -32,14 +58,50 @@ const server = (done) => {
   done();
 }
 
+const serverReload = (done) => {
+  browser.reload();
+  done();
+}
+
 // Watcher
 
 const watcher = () => {
-  gulp.watch('source/sass/**/*.scss', gulp.series(styles));
-  gulp.watch('source/*.html').on('change', browser.reload);
+  gulp.watch('source/sass/**/*.scss', gulp.series(processStyles));
+  gulp.watch('source/js/**/*.js', gulp.series(processScripts, serverReload));
+  gulp.watch('source/img/**/*.svg', gulp.series(createSvgStack, serverReload));
+  gulp.watch(['source/**/*.{html,twig}', 'source/data.json'], gulp.series(compileTwig, serverReload));
 }
 
+// Build the project in production mode without running the localhost server.
+// To read about developing and production mode follow to the begining of this file.
+
+export const build = (done) => {
+  data.isDevelopment = false;
+  gulp.series(
+    removeBuild,
+    compileProject
+  )(done);
+}
+
+// Run the localhost server building the project in developing mode.
+// To read about developing and production mode follow to the begining of this file.
+
+export const startDev = (done) => {
+  data.isDevelopment = true;
+  gulp.series(
+    removeBuild,
+    compileProject,
+    server,
+    watcher
+  )(done);
+}
+
+// Run the localhost server building the project in production mode.
+// To read about developing and production mode follow to the begining of this file.
 
 export default gulp.series(
-  styles, server, watcher
+  removeBuild,
+  compileProject,
+  server,
+  watcher
 );
