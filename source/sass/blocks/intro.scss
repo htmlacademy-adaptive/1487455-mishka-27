@@ -7,44 +7,24 @@
   min-height: 430px;
   margin-bottom: 31px;
   padding-top: 73px;
-  background-color: #fafafa;
+  background-color: var(--background-accent);
   overflow: hidden;
 
   @media #{$not-mobile} {
     position: relative;
     display: flex;
     flex-direction: column;
-    min-height: 791px;
+    min-height: 703px;
     margin-bottom: 40px;
-    padding-top: 189px;
+    padding-top: 100px;
   }
 
   @media #{$desktop-only} {
-    min-height: 797px;
-    padding-top: 192px;
+    min-height: 709px;
+    padding-top: 104px;
   }
 
-  &::after {
-    @media #{$not-mobile} {
-      position: absolute;
-      left: 0;
-      bottom: 0;
-      z-index: 1;
-      width: 100%;
-      height: 24px;
-
-      @include bg-image("intro-zigzag");
-      background-size: 768px 100%;
-      background-repeat: repeat-x;
-      background-position: center center;
-      content: "";
-    }
-
-    @media #{$desktop-only} {
-      height: 34px;
-      background-size: 1250px 100%;
-    }
-  }
+  @include bottom-wavy("1250px");
 }
 
 .intro__heading {
@@ -56,6 +36,7 @@
   font: 700 27px/30px var(--font-default);
   color: $color-dark;
   text-align: center;
+  overflow-wrap: anywhere;
 
   @media #{$not-mobile} {
     margin-bottom: 50px;
@@ -93,13 +74,14 @@
 .intro__menu {
   position: relative;
   z-index: 1;
-  display: grid;
+  display: block;
   max-width: $breakpoint-desktop;
   margin: 0 auto;
   padding: 0;
   list-style-type: none;
 
   @media #{$not-mobile} {
+    display: grid;
     grid-template-columns: repeat(2, 1fr);
     margin: auto var(--page-offset) 0;
   }
@@ -129,7 +111,7 @@
   position: relative;
   display: block;
   min-height: 103px;
-  padding: 24px 56% 31px var(--page-offset);
+  padding: 24px 37% 31px var(--page-offset);
   font: 700 19px/24px var(--font-default);
   color: #ffffff;
   text-decoration: none;
@@ -138,11 +120,12 @@
   transition-property: transform, box-shadow;
   transition-duration: 0.3s;
   transition-timing-function: ease-out;
+  overflow-wrap: anywhere;
 
   @media #{$not-mobile} {
     height: 100%;
     min-height: 131px;
-    padding: 25px 56% 46px 36px;
+    padding: 25px 35% 46px 36px;
     font-size: 20px;
     line-height: 30px;
   }
